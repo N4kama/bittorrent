@@ -1,15 +1,8 @@
 #include "includes.h"
 
 static void check_options(struct options opt, int argc, char **argv, struct option *options)
-struct options fill_options(int argc, char **argv, struct option *options)
 {
-    static struct options opt =
-        {
-            0, 0, '?', NULL, 0, 0,
-        };
-    int argv_index = 1;
     int option_index = 0;
-    char c = ' ';
     while ((c = getopt_long(argc, argv, "p:m:c:vd", options, &option_index)) != -1)
     {
         if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E')
@@ -42,6 +35,15 @@ struct options fill_options(int argc, char **argv, struct option *options)
         }
         argv_index++;
     }
+}
+struct options fill_options(int argc, char **argv, struct option *options)
+{
+    static struct options opt =
+        {
+            0, 0, '?', NULL, 0, 0,
+        };
+    int argv_index = 1;
+    char c = ' ';
     if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E' || argv_index < argc)
     {
         errx(1, "Usage: ./my-bittorrent [options] [files]");
