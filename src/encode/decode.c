@@ -1,5 +1,17 @@
 #include "decode.h"
 
+static void print_json(struct be_node *tree)
+{
+    json_t *root = json_object();
+
+    char *s = json_dumps(root, 0); //use JSON_INDENT for pretty print
+
+    
+
+    printf("%s\n", s);
+    json_decref(root);
+}
+
 int decode_torrent(char *file_path)
 {
     //get the size of the file in order to create the right fitted buffer
@@ -16,9 +28,11 @@ int decode_torrent(char *file_path)
         //Error while trying to read file
     }
 
-    //Decode the buffer into a be_node tree
+    //Decode the buffer and parses it into a be_node tree
     struct be_node *tree = be_decode(file, st.st_size);
 
+    //JSON output
+    print_json(tree);
 
     be_free(tree);
     return 0;
