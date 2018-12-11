@@ -77,6 +77,21 @@ struct options get_options(int argc, char **argv)
     return opt;
 }
 
+int exec_option(struct options opt)
+{
+    switch (opt.type)
+    {
+    case 'p':
+        return decode_torrent(opt.argv);
+    case 'm':
+        break;
+    case 'c':
+        break;
+    default:
+        break;
+    }
+    return 1;
+}
 int main(int argc, char *argv[])
 {
     struct options options = get_options(argc, argv);
