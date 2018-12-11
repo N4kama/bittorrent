@@ -2,19 +2,6 @@
 # define STRUCT_H
 
 # include <stdio.h>
-# include <unistd.h>
-# include <getopt.h>
+# include <stdlib.h>
 
-struct options
-{
-    int p;
-    char *argv_p;
-    int m;
-    char *argv_m;
-    int c;
-    char *argv_c;
-    int d;
-    int v;
-};
-
-#endif
+#endif /* !STRUCT_H */
