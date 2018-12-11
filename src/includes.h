@@ -3,7 +3,9 @@
 
 # include <err.h>
 # include <getopt.h>
+
 # include "struct.h"
+# include "encode/decode.h"
 
 struct options
 {

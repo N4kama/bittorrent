@@ -1,8 +1,48 @@
 #include "includes.h"
 
-static void check_options(struct options opt, int argc, char **argv, struct option *options)
+static void parse_options(struct options opt, int *argv_index, char **argv, char c)
 {
+    switch (c)
+    {
+    case 'p':
+        opt.type = opt.type == '?' ? 'p' : 'E';
+        *argv_index += 1;
+        opt.argv = argv[*argv_index];
+        break;
+    case 'm':
+        opt.type = opt.type == '?' ? 'm' : 'E';
+        *argv_index += 1;
+        opt.argv = argv[*argv_index];
+        break;
+    case 'c':
+        opt.type = opt.type == '?' ? 'c' : 'E';
+        *argv_index += 1;
+        opt.argv = argv[*argv_index];
+        break;
+    case 'v':
+        opt.v += 1;
+        break;
+    case 'd':
+        opt.d += 1;
+        break;
+    default:
+        errx(1, "Usage: ./my-bittorrent [options] [files]");
+    }
+}
+struct options fill_options(int argc, char **argv, struct option *options)
+{
+    static struct options opt =
+        {
+            0,
+            0,
+            '?',
+            NULL,
+            0,
+            0,
+        };
+    int argv_index = 1;
     int option_index = 0;
+    char c = ' ';
     while ((c = getopt_long(argc, argv, "p:m:c:vd", options, &option_index)) != -1)
     {
         if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E')
@@ -10,40 +50,9 @@ static void check_options(struct options opt, int argc, char **argv, struct opti
             errx(1, "Usage: ./my-bittorrent [options] [files]");
         }
         opt.nb_argv++;
-        switch (c)
-        {
-        case 'p':
-            opt.type = opt.type == '?' ? 'p' : 'E';
-            opt.argv = argv[++argv_index];
-            break;
-        case 'm':
-            opt.type = opt.type == '?' ? 'm' : 'E';
-            opt.argv = argv[++argv_index];
-            break;
-        case 'c':
-            opt.type = opt.type == '?' ? 'c' : 'E';
-            opt.argv = argv[++argv_index];
-            break;
-        case 'v':
-            opt.v += 1;
-            break;
-        case 'd':
-            opt.d += 1;
-            break;
-        default:
-            errx(1, "Usage: ./my-bittorrent [options] [files]");
-        }
+        parse_options(opt, &argv_index, argv, c);
         argv_index++;
     }
-}
-struct options fill_options(int argc, char **argv, struct option *options)
-{
-    static struct options opt =
-        {
-            0, 0, '?', NULL, 0, 0,
-        };
-    int argv_index = 1;
-    char c = ' ';
     if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E' || argv_index < argc)
     {
         errx(1, "Usage: ./my-bittorrent [options] [files]");
@@ -72,5 +81,9 @@ int main(int argc, char *argv[])
 {
     struct options options = get_options(argc, argv);
     printf("%c", options.type);
+
+    int res = decode_torrent("test");
+    printf("%d\n", res);
+
     return 0;
 }
