@@ -3,7 +3,6 @@
 
 # include <err.h>
 # include <getopt.h>
-# include <string.h>
 # include "struct.h"
 
 struct options

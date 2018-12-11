@@ -1,43 +1,34 @@
 #include "includes.h"
 
-static enum opt_type get_opt_enum(char c, struct options opt)
-{
-    return c;
-}
-
+static void check_options(struct options opt, int argc, char **argv, struct option *options)
 struct options fill_options(int argc, char **argv, struct option *options)
 {
     static struct options opt =
         {
-            0};
+            0, 0, '?', NULL, 0, 0,
+        };
     int argv_index = 1;
     int option_index = 0;
-    char c = '?';
-    opt.type = '?';
+    char c = ' ';
     while ((c = getopt_long(argc, argv, "p:m:c:vd", options, &option_index)) != -1)
     {
-        //argv_index += complete_options(c, opt);
-        if (opt.v > 1
-            || opt.d > 1
-            || c == '?'
-            || !strchr("pmc?", opt.type))
+        if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E')
         {
-            //option not recognized, should throw an error ?
-            break;
+            errx(1, "Usage: ./my-bittorrent [options] [files]");
         }
         opt.nb_argv++;
         switch (c)
         {
         case 'p':
-            opt.type = 'p';
+            opt.type = opt.type == '?' ? 'p' : 'E';
             opt.argv = argv[++argv_index];
             break;
         case 'm':
-            opt.type = 'm';
+            opt.type = opt.type == '?' ? 'm' : 'E';
             opt.argv = argv[++argv_index];
             break;
         case 'c':
-            opt.type = 'c';
+            opt.type = opt.type == '?' ? 'c' : 'E';
             opt.argv = argv[++argv_index];
             break;
         case 'v':
@@ -47,10 +38,13 @@ struct options fill_options(int argc, char **argv, struct option *options)
             opt.d += 1;
             break;
         default:
-            opt.nb_argv--;
-            break;
+            errx(1, "Usage: ./my-bittorrent [options] [files]");
         }
         argv_index++;
+    }
+    if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E' || argv_index < argc)
+    {
+        errx(1, "Usage: ./my-bittorrent [options] [files]");
     }
     opt.nb_options = argv_index - 1;
     return opt;
@@ -72,29 +66,9 @@ struct options get_options(int argc, char **argv)
     return opt;
 }
 
-int check_options(int argc, struct options options)
-{
-    //offset is the number of options, argc - offset = nb of torrent file as arg
-    int offset = options.nb_options + options.nb_argv;
-    if (argc == offset + 1)
-    {
-        return 0;
-    }
-    //conflict_options is the number of unique options (always leq than 1)
-    int conflict_options = options.nb_options - options.d - options.v;
-    if (conflict_options > 1)
-    {
-        return 0;
-    }
-    return 1;
-}
-
 int main(int argc, char *argv[])
 {
     struct options options = get_options(argc, argv);
-    if (!check_options(argc, options))
-    {
-        errx(1, "my-bittorrent: Usage: ./my-bittorrent [options] [files]");
-    }
+    printf("%c", options.type);
     return 0;
 }
