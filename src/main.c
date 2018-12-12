@@ -1,6 +1,6 @@
 #include "includes.h"
 
-static void parse_options(struct options opt, int *argv_index, char **argv, char c)
+static struct options parse_options(struct options opt, int *argv_index, char **argv, char c)
 {
     switch (c)
     {
@@ -28,6 +28,7 @@ static void parse_options(struct options opt, int *argv_index, char **argv, char
     default:
         errx(1, "Usage: ./my-bittorrent [options] [files]");
     }
+    return opt;
 }
 struct options fill_options(int argc, char **argv, struct option *options)
 {
@@ -50,7 +51,7 @@ struct options fill_options(int argc, char **argv, struct option *options)
             errx(1, "Usage: ./my-bittorrent [options] [files]");
         }
         opt.nb_argv++;
-        parse_options(opt, &argv_index, argv, c);
+        opt = parse_options(opt, &argv_index, argv, c);
         argv_index++;
     }
     if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E' || argv_index < argc)
@@ -96,8 +97,7 @@ int main(int argc, char *argv[])
 {
     struct options options = get_options(argc, argv);
     printf("%c", options.type);
-
-    int res = decode_torrent("test");
+    int res = exec_option(options);
     printf("%d\n", res);
 
     return 0;
