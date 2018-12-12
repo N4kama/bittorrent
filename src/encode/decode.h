@@ -4,6 +4,7 @@
 #include "../struct.h"
 #include <sys/stat.h>
 #include <jansson.h>
+#include <string.h>
 #include "../../include/bencode/bencode.h"
 
 
