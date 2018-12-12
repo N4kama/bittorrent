@@ -48,6 +48,7 @@ static void print_json(struct be_node *tree)
     create_json(root, tree);
     char *s = json_dumps(root, 0);
     printf("%s\n", s);
+    free(s);
     json_decref(root);
 }
 
