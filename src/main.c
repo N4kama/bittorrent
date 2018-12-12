@@ -54,7 +54,7 @@ struct options fill_options(int argc, char **argv, struct option *options)
         opt = parse_options(opt, &argv_index, argv, c);
         argv_index++;
     }
-    if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E' || argv_index < argc)
+    if (!opt.nb_argv || opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E' || argv_index < argc)
     {
         errx(1, "Usage: ./my-bittorrent [options] [files]");
     }
