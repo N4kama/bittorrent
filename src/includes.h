@@ -6,6 +6,7 @@
 
 # include "struct.h"
 # include "encode/decode.h"
+# include "encode/encode.h"
 
 struct options
 {

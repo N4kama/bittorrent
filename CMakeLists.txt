@@ -12,6 +12,7 @@ add_executable(
         my-bittorrent
         src/main.c
         src/encode/decode.c
+        src/encode/encode.c
     )
 
 find_library(BENCODE bencode lib)
