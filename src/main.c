@@ -85,6 +85,7 @@ int exec_option(struct options opt)
     case 'p':
         return decode_torrent(opt.argv);
     case 'm':
+        return encode_torrent(opt.argv);
         break;
     case 'c':
         break;
@@ -96,7 +97,7 @@ int exec_option(struct options opt)
 int main(int argc, char *argv[])
 {
     struct options options = get_options(argc, argv);
-    printf("%c", options.type);
+    //printf("%c\n", options.type);
     int res = exec_option(options);
     printf("%d\n", res);
 

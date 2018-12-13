@@ -46,7 +46,7 @@ static void print_json(struct be_node *tree)
 {
     json_t *root = json_object();
     create_json(root, tree);
-    char *s = json_dumps(root, 0);
+    char *s = json_dumps(root, JSON_INDENT(6));
     printf("%s\n", s);
     free(s);
     json_decref(root);
@@ -59,7 +59,7 @@ int decode_torrent(char *file_path)
     stat(file_path, &st);
     char *file = calloc(st.st_size, sizeof(char));
 
-    printf("DEBUG : size of file buffer is : %d (should be equal to char number)\n", (int)st.st_size);
+    //printf("DEBUG : size of file buffer is : %d (should be equal to char number)\n", (int)st.st_size);
 
     //Open the file and fill the buffer
     FILE *f = fopen(file_path, "r");
