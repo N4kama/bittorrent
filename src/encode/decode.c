@@ -1,9 +1,20 @@
 #include "decode.h"
 
-static char *str_decode(struct be_string *str)
+static char *str_decode(struct be_string *s)
 {
-    char *s = str->content;
-    return s;
+    char *decoded = calloc(10 * s->length + 1, sizeof(char));
+    int count = 0;
+    for (int i = 0; i < s->length; i++)
+    {
+        if (s->content[i] == '\\')
+        {
+            decoded[count] = s->content[i];
+            count += 1;
+        }
+        decoded[count] = s->content[i];
+        count += 1;
+    }
+    return decoded;
 }
 
 static json_t *create_json(json_t *root, struct be_node *tree)
@@ -13,10 +24,15 @@ static json_t *create_json(json_t *root, struct be_node *tree)
     struct be_dict *dict = NULL;
     json_t *child = NULL;
     json_t *array = NULL;
+    json_t *s = NULL;
+    char *temp = NULL;
     switch (tree->type)
     {
     case BE_STR:
-        return json_string(str_decode(tree->element.str));
+        temp = str_decode(tree->element.str);
+        s = json_string(temp);
+        free(temp);
+        return s;
     case BE_INT:
         return json_integer(tree->element.num);
     case BE_LIST:
@@ -34,8 +50,10 @@ static json_t *create_json(json_t *root, struct be_node *tree)
         while (dict)
         {
             child = json_object();
-            json_object_set_new(root, str_decode(dict->key),
+            temp = str_decode(dict->key);
+            json_object_set_new(root,temp,
                                 create_json(child, dict->val));
+            free(temp);
             dict = tree->element.dict[i++];
         }
     default:
@@ -44,14 +62,33 @@ static json_t *create_json(json_t *root, struct be_node *tree)
     return root;
 }
 
+static void free_json(json_t *root)
+{
+    if (!root)
+    {
+        return;
+    }
+    const char *key;
+    void *tmp;
+    json_t *value;
+    json_object_foreach_safe(root, tmp, key, value)
+    {
+        json_array_clear(json_object_get(root, key));
+        free_json(json_object_get(root, key));
+        //json_object_del(root, key);
+    }
+    json_decref(root);
+}
+
 static void print_json(struct be_node *tree)
 {
     json_t *root = json_object();
-    create_json(root, tree);
+    root = create_json(root, tree);
     char *s = json_dumps(root, JSON_INDENT(6));
     printf("%s\n", s);
     free(s);
-    json_decref(root);
+    //json_object_clear(root);
+    free_json(root);
 }
 
 int decode_torrent(char *file_path)
@@ -75,7 +112,7 @@ int decode_torrent(char *file_path)
 
     //JSON output
     print_json(tree);
-
+    free(file);
     be_free(tree);
     return 0;
 }
