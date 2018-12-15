@@ -2,16 +2,17 @@
 
 static char *str_decode(struct be_string *str)
 {
-    char *s = calloc(str->length + 1, 1);
-    s = memcpy(s, str->content, str->length);
+    char *s = str->content;
     return s;
 }
+
 static json_t *create_json(json_t *root, struct be_node *tree)
 {
     int i = 0;
     struct be_node *cur = NULL;
     struct be_dict *dict = NULL;
     json_t *child = NULL;
+    json_t *array = NULL;
     switch (tree->type)
     {
     case BE_STR:
@@ -20,13 +21,14 @@ static json_t *create_json(json_t *root, struct be_node *tree)
         return json_integer(tree->element.num);
     case BE_LIST:
         cur = tree->element.list[i++];
+        array = json_array();
         while (cur)
         {
             child = json_object();
-            json_array_append(root, create_json(child, cur));
+            json_array_append(array, create_json(child, cur));
             cur = tree->element.list[i++];
         }
-        break;
+        return array;
     case BE_DICT:
         dict = tree->element.dict[i++];
         while (dict)
