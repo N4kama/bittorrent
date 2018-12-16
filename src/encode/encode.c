@@ -23,6 +23,35 @@ static char *my_basename(char *path)
     return res;
 }
 
+static void get_files_from_dir(char *path, char ***files_path, int *arr_size)
+{
+    int nb_files = 0;
+    char new_path[4096];
+
+    struct dirent *file = NULL;
+    DIR *dir = opendir(path);
+
+    if (!dir)
+    {
+        *arr_size += 1;
+        *files_path = realloc(*files_path, *arr_size * sizeof(char *));
+        (*files_path)[*arr_size - 1] = strdup(path);
+    }
+    else
+    {
+        while ((file = readdir(dir)))
+        {
+            if (strcmp(file->d_name, ".") && strcmp(file->d_name, ".."))
+            {
+                strcpy(new_path, path);
+                strcat(new_path, "/");
+                strcat(new_path, file->d_name);
+                get_files_from_dir(new_path, files_path, arr_size);
+            }
+        }
+    }
+}
+
 static void init_basic_info(struct be_node *root)
 {
     //Init the first 3 information of the torrent file
@@ -110,6 +139,110 @@ static void init_single_file_torrent(struct be_node *root, char *path)
     root->element.dict[1]->val->element.str->content = strdup(basename);
 }
 
+static void init_basic_files_dict(struct be_node *dict, char *path, char *origin_path)
+{
+    dict->element.dict = calloc(3, sizeof(struct be_dict *));
+    dict->element.dict[0] = calloc(1, sizeof(struct be_dict));
+    dict->element.dict[1] = calloc(1, sizeof(struct be_dict));
+    dict->element.dict[0]->key = calloc(1, sizeof(struct be_string));
+    dict->element.dict[0]->val = be_alloc(BE_INT);
+    dict->element.dict[0]->key->length = 6;
+    dict->element.dict[0]->key->content = strdup("length");
+    dict->element.dict[1]->key = calloc(1, sizeof(struct be_string));
+    dict->element.dict[1]->val = be_alloc(BE_LIST);
+    dict->element.dict[1]->key->length = 4;
+    dict->element.dict[1]->key->content = strdup("path");
+
+    //filling the 'path' array
+    struct be_node *list = dict->element.dict[1]->val;
+    int idx_entries = -1;
+
+    int idx = 0;
+    char p_copy[4096];
+    char o_copy[4096];
+    strcpy(p_copy, path);
+    strcpy(o_copy, origin_path);
+    while (p_copy[idx] && o_copy[idx] && p_copy[idx] == o_copy[idx])
+        idx++;
+    if (p_copy[idx] == '/')
+        idx++;
+    while (p_copy[idx])
+    {
+        int tmp = idx;
+        while (p_copy[tmp] && p_copy[tmp] != '/')
+            tmp++;
+
+        idx_entries++;
+        list->element.list = realloc(list->element.list, (idx_entries + 2) * sizeof(struct be_node *));
+        list->element.list[idx_entries] = be_alloc(BE_STR);
+        list->element.list[idx_entries]->element.str = calloc(1, sizeof(struct be_string));
+        list->element.list[idx_entries]->element.str->length = tmp - idx;
+        list->element.list[idx_entries]->element.str->content = strndup(p_copy + idx, tmp - idx);
+
+        if (p_copy[tmp])
+            idx = tmp + 1;
+        else
+            idx = tmp;
+    }
+}
+
+static void hash_multiple_files(char *path, struct be_node *dict,
+                                struct be_node *pieces, char *origin_path)
+{
+    static int total_bytes_read = 0;
+    static unsigned char buf[262144];
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    int file_size = 0;
+
+    //Initialization of the file's dictionnay basic info
+    init_basic_files_dict(dict, path, origin_path);
+
+    //Calculating file size, pieces values
+    FILE *f = fopen(path, "r");
+    if (!f)
+        return;
+    int r = 0;
+}
+
+static void init_directory_torrent(struct be_node *root, char *path)
+{
+    //Init the pieces part
+    root->element.dict[3]->key = calloc(1, sizeof(struct be_string));
+    root->element.dict[3]->key->length = 6;
+    root->element.dict[3]->key->content = strdup("pieces");
+    root->element.dict[3]->val = be_alloc(BE_STR);
+
+    //Getting the list of files paths to fill 'files' dictionnary
+    char **files_path = NULL;
+    int arr_size = 0;
+    get_files_from_dir(path, &files_path, &arr_size);
+
+    //Init the files path
+    root->element.dict[0]->key = calloc(1, sizeof(struct be_string));
+    root->element.dict[0]->key->length = 5;
+    root->element.dict[0]->key->content = strdup("files");
+    root->element.dict[0]->val = be_alloc(BE_LIST);
+    root->element.dict[0]->val->element.list = calloc(arr_size + 1, sizeof(struct be_node *));
+
+    //Filling the 'files' and 'pieces'
+    for (int i = 0; i < arr_size; i++)
+    {
+        root->element.dict[0]->val->element.list[i] = be_alloc(BE_DICT);
+        hash_multiple_files(files_path[i],
+                            root->element.dict[0]->val->element.list[i],
+                            root->element.dict[3]->val, path);
+    }
+
+    char *dirname = my_basename(path); //ex : foo/bar/foobar_dir
+    root->element.dict[1]->key = calloc(1, sizeof(struct be_string));
+    root->element.dict[1]->key->length = 4;
+    root->element.dict[1]->key->content = strdup("name");
+    root->element.dict[1]->val = be_alloc(BE_STR);
+    root->element.dict[1]->val->element.str = calloc(1, sizeof(struct be_string));
+    root->element.dict[1]->val->element.str->length = strlen(dirname);
+    root->element.dict[1]->val->element.str->content = strdup(dirname);
+}
+
 static void init_torrent_info(char *path, struct be_node *root)
 {
     /*  Two types of dictionnary : length, name, pieces_length, pieces
@@ -132,6 +265,7 @@ static void init_torrent_info(char *path, struct be_node *root)
     else
     {
         //If path is a Directory, iterate through it (second type of dict)
+        init_directory_torrent(root, path);
     }
 
     //Init piece length : ALWAYS 262144

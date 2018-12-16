@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <jansson.h>
 #include <string.h>
+#include <dirent.h>
 #include <libgen.h>
 #include <openssl/sha.h>
 #include "../../include/bencode/bencode.h"
