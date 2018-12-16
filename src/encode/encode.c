@@ -47,10 +47,11 @@ static void init_basic_info(struct be_node *root)
     root->element.dict[2]->val->element.num = 1998;
 }
 
-static void hash_single_file(char *path, struct be_node *pieces)
+static int hash_single_file(char *path, struct be_node *pieces)
 {
+    int total_bytes_read = 0;
     int nb_hash = -1;
-    unsigned char hash[20];
+    unsigned char hash[SHA_DIGEST_LENGTH];
     unsigned char buf[262144];
     int res_size = 0;
     unsigned char *res = NULL;
@@ -58,24 +59,26 @@ static void hash_single_file(char *path, struct be_node *pieces)
     //Calculating the pieces of the file, result in res ptr
     FILE *f = fopen(path, "r");
     if (!f)
-        return;
+        return -1;
     int r = 0;
     while ((r = fread(buf, sizeof(char), 262144, f)) > 0)
     {
-        res_size += 20;
+        total_bytes_read += r;
+        res_size += SHA_DIGEST_LENGTH;
         res = realloc(res, res_size * sizeof(char));
         SHA1(buf, r, hash);
         nb_hash++;
-        for (int i = 0; i < 20; i++)
-            res[20 * nb_hash + i] = hash[i];
+        for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
+            res[SHA_DIGEST_LENGTH * nb_hash + i] = hash[i];
     }
     fclose(f);
 
     pieces->element.str = calloc(1, sizeof(struct be_string));
-    pieces->element.str->length = (nb_hash + 1) * 20;
+    pieces->element.str->length = (nb_hash + 1) * SHA_DIGEST_LENGTH;
     void *ress = res;
     char *resss = ress;
     pieces->element.str->content = resss;
+    return total_bytes_read;
 }
 
 static void init_single_file_torrent(struct be_node *root, char *path)
@@ -85,8 +88,9 @@ static void init_single_file_torrent(struct be_node *root, char *path)
     root->element.dict[3]->key->content = strdup("pieces");
     root->element.dict[3]->val = be_alloc(BE_STR);
 
-    //init pieces from a single file
-    hash_single_file(path, root->element.dict[3]->val);
+    //init pieces from a single file, get the total bytes read for the length
+    //dictionnary
+    int total_bytes_read = hash_single_file(path, root->element.dict[3]->val);
 
     //Getting basename from the base
     char *basename = my_basename(path);
@@ -95,11 +99,15 @@ static void init_single_file_torrent(struct be_node *root, char *path)
     root->element.dict[0]->key->length = 6;
     root->element.dict[0]->key->content = strdup("length");
     root->element.dict[0]->val = be_alloc(BE_INT);
-    root->element.dict[0]->val->element.num = strlen(basename);
+    root->element.dict[0]->val->element.num = total_bytes_read;
 
     root->element.dict[1]->key = calloc(1, sizeof(struct be_string));
     root->element.dict[1]->key->length = 4;
-    root->element.dict[1]->key->content = strdup(basename);
+    root->element.dict[1]->key->content = strdup("name");
+    root->element.dict[1]->val = be_alloc(BE_STR);
+    root->element.dict[1]->val->element.str = calloc(1, sizeof(struct be_string));
+    root->element.dict[1]->val->element.str->length = strlen(basename);
+    root->element.dict[1]->val->element.str->content = strdup(basename);
 }
 
 static void init_torrent_info(char *path, struct be_node *root)
