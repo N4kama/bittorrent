@@ -24,6 +24,8 @@ static struct options parse_options(struct options opt, int *argv_index, char **
         break;
     case 'd':
         opt.d += 1;
+        *argv_index += 1;
+        opt.argv = argv[*argv_index];
         break;
     default:
         errx(1, "Usage: ./my-bittorrent [options] [files]");
@@ -70,7 +72,7 @@ struct options get_options(int argc, char **argv)
             {"pretty-print-torrent-file", 1, NULL, 'p'},
             {"mktorrent", 1, NULL, 'm'},
             {"check-integrity", 1, NULL, 'c'},
-            {"dump-peers", 0, NULL, 'd'},
+            {"dump-peers", 1, NULL, 'd'},
             {"verbose", 0, NULL, 'v'},
         };
     //filling options struct with corresponding values
@@ -80,15 +82,32 @@ struct options get_options(int argc, char **argv)
 
 int exec_option(struct options opt)
 {
+    json_t *root = NULL;
+    json_t *temp_info = NULL;
+    int res = 0;
     switch (opt.type)
     {
     case 'p':
-        return decode_torrent(opt.argv);
+        root = decode_torrent(opt.argv);
+        res = pretty_print(root);
+        free_json(root);
+        return res;
     case 'm':
         return encode_torrent(opt.argv);
-        break;
     case 'c':
         break;
+    case 'd':
+        root = decode_torrent(opt.argv);
+        temp_info = json_object_get(root, "announce");
+        if(!json_is_string(temp_info))
+        {
+            free_json(root);
+            return 1;
+        }
+        const char *s = json_string_value(temp_info);
+        res = dump_peers(s);
+        free_json(root);
+        return res;
     default:
         break;
     }
