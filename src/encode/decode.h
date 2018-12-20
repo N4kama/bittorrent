@@ -7,6 +7,8 @@
 #include <string.h>
 #include "../../include/bencode/bencode.h"
 
-int decode_torrent(char *file_path);
+json_t *decode_torrent(char *file_path);
+void free_json(json_t *root);
+int pretty_print(json_t *j);
 
 #endif /* !INCLUDE_H */

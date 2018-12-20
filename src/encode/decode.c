@@ -80,7 +80,7 @@ static json_t *create_json(json_t *root, struct be_node *tree)
     return root;
 }
 
-static void free_json(json_t *root)
+void free_json(json_t *root)
 {
     if (!root)
     {
@@ -96,18 +96,19 @@ static void free_json(json_t *root)
     json_decref(root);
 }
 
-static void print_json(struct be_node *tree)
+int pretty_print(json_t *root)
 {
-    json_t *root = json_object();
-    root = create_json(root, tree);
+    if(!root)
+    {
+        return 1;
+    }
     char *s = json_dumps(root, JSON_INDENT(6));
     printf("%s\n", s);
     free(s);
-    json_object_clear(root);
-    free_json(root);
+    return 0;
 }
 
-int decode_torrent(char *file_path)
+json_t *decode_torrent(char *file_path)
 {
     //get the size of the file in order to create the right fitted buffer
     struct stat st;
@@ -125,10 +126,15 @@ int decode_torrent(char *file_path)
 
     //Decode the buffer and parses it into a be_node tree
     struct be_node *tree = be_decode(file, st.st_size);
+    free(file);
+    if(!tree)
+    {
+        return NULL;
+    }
 
     //JSON output
-    print_json(tree);
-    free(file);
+    json_t *root = json_object();
+    root = create_json(root, tree);
     be_free(tree);
-    return 0;
+    return root;
 }
