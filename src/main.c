@@ -96,10 +96,14 @@ int exec_option(struct options opt)
         return encode_torrent(opt.argv);
     case 'c':
         break;
-    case 'd':
+    default:
+        break;
+    }
+    if (opt.d)
+    {
         root = decode_torrent(opt.argv);
         temp_info = json_object_get(root, "announce");
-        if(!json_is_string(temp_info))
+        if (!json_is_string(temp_info))
         {
             free_json(root);
             return 1;
@@ -108,17 +112,13 @@ int exec_option(struct options opt)
         res = dump_peers(s);
         free_json(root);
         return res;
-    default:
-        break;
     }
     return 1;
 }
 int main(int argc, char *argv[])
 {
     struct options options = get_options(argc, argv);
-    //printf("%c\n", options.type);
     int res = exec_option(options);
     printf("%d\n", res);
-
     return 0;
 }
