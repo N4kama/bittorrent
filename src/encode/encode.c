@@ -25,7 +25,6 @@ static char *my_basename(char *path)
 
 static void get_files_from_dir(char *path, char ***files_path, int *arr_size)
 {
-    int nb_files = 0;
     char new_path[4096];
 
     struct dirent *file = NULL;
@@ -186,23 +185,28 @@ static void init_basic_files_dict(struct be_node *dict, char *path, char *origin
     }
 }
 
-static void hash_multiple_files(char *path, struct be_node *dict,
-                                struct be_node *pieces, char *origin_path)
+/*static void hash_multiple_files(char *path, struct be_node *dict,
+                                struct be_node *pieces)
 {
-    static int total_bytes_read = 0;
+    int total_bytes_read = 0;
     static unsigned char buf[262144];
     unsigned char hash[SHA_DIGEST_LENGTH];
     int file_size = 0;
 
     //Initialization of the file's dictionnay basic info
-    init_basic_files_dict(dict, path, origin_path);
 
     //Calculating file size, pieces values
     FILE *f = fopen(path, "r");
     if (!f)
         return;
     int r = 0;
-}
+    while ((r = fread(buf, sizeof(char), 262144, f)) > 0)
+    {
+    }
+    //total bytes read = length
+
+    fclose(f);
+}*/
 
 static void init_directory_torrent(struct be_node *root, char *path)
 {
@@ -228,9 +232,11 @@ static void init_directory_torrent(struct be_node *root, char *path)
     for (int i = 0; i < arr_size; i++)
     {
         root->element.dict[0]->val->element.list[i] = be_alloc(BE_DICT);
-        hash_multiple_files(files_path[i],
-                            root->element.dict[0]->val->element.list[i],
-                            root->element.dict[3]->val, path);
+        init_basic_files_dict(root->element.dict[0]->val->element.list[i],
+                              files_path[i], path);
+        //hash_multiple_files(files_path[i],
+          //                  root->element.dict[0]->val->element.list[i],
+            //                root->element.dict[3]->val);
     }
 
     char *dirname = my_basename(path); //ex : foo/bar/foobar_dir
