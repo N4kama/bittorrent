@@ -41,7 +41,7 @@ static json_t *create_json(json_t *root, struct be_node *tree)
         while (cur)
         {
             child = json_object();
-            json_array_append(array, create_json(child, cur));
+            json_array_append_new(array, create_json(child, cur));
             cur = tree->element.list[i++];
         }
         return array;
@@ -51,11 +51,12 @@ static json_t *create_json(json_t *root, struct be_node *tree)
         {
             child = json_object();
             temp = str_decode(dict->key);
-            json_object_set_new(root,temp,
+            json_object_set_new(root, temp,
                                 create_json(child, dict->val));
             free(temp);
             dict = tree->element.dict[i++];
         }
+        return root;
     default:
         break;
     }
@@ -73,9 +74,7 @@ static void free_json(json_t *root)
     json_t *value;
     json_object_foreach_safe(root, tmp, key, value)
     {
-        json_array_clear(json_object_get(root, key));
         free_json(json_object_get(root, key));
-        //json_object_del(root, key);
     }
     json_decref(root);
 }
@@ -87,7 +86,7 @@ static void print_json(struct be_node *tree)
     char *s = json_dumps(root, JSON_INDENT(6));
     printf("%s\n", s);
     free(s);
-    //json_object_clear(root);
+    json_object_clear(root);
     free_json(root);
 }
 
