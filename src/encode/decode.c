@@ -29,11 +29,13 @@ static json_t *create_json(json_t *root, struct be_node *tree)
     switch (tree->type)
     {
     case BE_STR:
+        json_decref(root);
         temp = str_decode(tree->element.str);
         s = json_string(temp);
         free(temp);
         return s;
     case BE_INT:
+        json_decref(root);
         return json_integer(tree->element.num);
     case BE_LIST:
         cur = tree->element.list[i++];
