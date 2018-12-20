@@ -1,20 +1,35 @@
 #include "decode.h"
 
-static char *str_decode(struct be_string *s)
+static char *str_decode(struct be_string *be_str)
 {
-    char *decoded = calloc(10 * s->length + 1, sizeof(char));
-    int count = 0;
-    for (int i = 0; i < s->length; i++)
+    char *s = be_str->content;
+    size_t len = be_str->length;
+    if (!s)
+        return NULL;
+    char *res = calloc(len * 5 + 1, sizeof(char));
+    size_t cursor = 0;
+    for (size_t i = 0; i < len; i++)
     {
-        if (s->content[i] == '\\')
+        if (s[i] < 32 || s[i] > 126)
         {
-            decoded[count] = s->content[i];
-            count += 1;
+            sprintf((res + cursor), "%s", "U+00");
+            cursor += 4;
+            unsigned char hexa = s[i];
+            sprintf((res + cursor), "%02X", hexa);
+            cursor += 2;
         }
-        decoded[count] = s->content[i];
-        count += 1;
+        else
+        {
+            if (s[i] == '\\')
+            {
+                res[cursor] = '\\';
+                cursor += 1;
+            }
+            res[cursor] = s[i];
+            cursor += 1;
+        }
     }
-    return decoded;
+    return res;
 }
 
 static json_t *create_json(json_t *root, struct be_node *tree)
