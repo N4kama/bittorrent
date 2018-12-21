@@ -39,7 +39,7 @@ static struct be_node *get_tree(const char *f_path)
 
 static char *find_val(struct be_node *tree)
 {
-    if(!tree)
+    if (!tree)
     {
         return NULL;
     }
@@ -64,37 +64,39 @@ int dump_peers(const char *path, const char *f_path)
 {
     struct be_node *tree = get_tree(f_path);
     char *val = find_val(tree);
+    if (tree)
+    {
+        be_free(tree);
+    }
     if (!val)
     {
-        if(tree)
-        {
-            be_free(tree);
-        }
         return 0;
     }
-    void * val_v = val;
+    void *val_v = val;
     unsigned char *val_u = val_v;
     char *n_path = calloc(4096, 1);
-    unsigned char *info_hash = calloc(4096, 1);
-    info_hash = SHA1(val_u, strlen(val), info_hash); //"%f0%7e%0b%05%84%74%5b%7b%cb%35%e9%80%97%48%8d%34%e6%86%23%d0"; //sha1(bencode(metadata['info']))";
+    unsigned char *info_hash_u = calloc(4096, 1);
+    info_hash_u = SHA1(val_u, strlen(val), info_hash_u); //"%f0%7e%0b%05%84%74%5b%7b%cb%35%e9%80%97%48%8d%34%e6%86%23%d0"; //sha1(bencode(metadata['info']))";
+    void *info_hash_v = info_hash_u;
+    char *info_hash = info_hash_v;
+    info_hash = info_hash;
+    FILE *buf = fopen("test", "w+");
     CURL *curl;
     curl = curl_easy_init();
     if (curl)
     {
-        sprintf(n_path, "?info_hash%s&peer_id=-MB2021-&port=6881&uploaded=0&downloaded=0&left=1502576640&event=started&compact=1", info_hash);
+        sprintf(n_path, "/announce?info_hash=%s&peer_id=-MB2021-&port=6881&uploaded=0&downloaded=100&left=0&compact=1", curl_easy_escape(curl, info_hash, strlen(info_hash)));
         curl_easy_setopt(curl, CURLOPT_URL, path);
         printf("%s\n", n_path);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
         curl_easy_setopt(curl, CURLOPT_REQUEST_TARGET, n_path);
-        curl_easy_setopt(curl, CURLOPT_URL, NULL);
-        //curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
-        //printf("%s", file);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, buf);
         curl_easy_perform(curl);
-
+        fclose(buf);
         /* always cleanup */
         curl_easy_cleanup(curl);
     }
     free(n_path);
-    be_free(tree);
     return 1;
 }
