@@ -173,6 +173,7 @@ static void init_basic_files_dict(struct be_node *dict, char *path, char *origin
 
         idx_entries++;
         list->element.list = realloc(list->element.list, (idx_entries + 2) * sizeof(struct be_node *));
+        list->element.list[idx_entries + 1] = NULL;
         list->element.list[idx_entries] = be_alloc(BE_STR);
         list->element.list[idx_entries]->element.str = calloc(1, sizeof(struct be_string));
         list->element.list[idx_entries]->element.str->length = tmp - idx;
@@ -185,28 +186,50 @@ static void init_basic_files_dict(struct be_node *dict, char *path, char *origin
     }
 }
 
-/*static void hash_multiple_files(char *path, struct be_node *dict,
-                                struct be_node *pieces)
+static void hash_multiple_files(char *path, struct be_node *dict,
+                                struct be_node *pieces, int last_elem)
 {
+    //last elem = 0 if it's the last path
+
     int total_bytes_read = 0;
     static unsigned char buf[262144];
+    static int idx = 0;
     unsigned char hash[SHA_DIGEST_LENGTH];
-    int file_size = 0;
-
-    //Initialization of the file's dictionnay basic info
+    static int res_size = 0;
+    static char *res = 0;
+    int nb_hash = -1;
 
     //Calculating file size, pieces values
     FILE *f = fopen(path, "r");
     if (!f)
         return;
     int r = 0;
-    while ((r = fread(buf, sizeof(char), 262144, f)) > 0)
+    while ((r = fread(buf + idx, sizeof(char), 262144 - idx, f)) > 0)
     {
+        total_bytes_read += r;
+        idx += r;
+        if (last_elem && idx != 262144)
+            break;
+        if (!last_elem)
+            buf[idx] = '\0';
+        idx = 0;
+        res_size += SHA_DIGEST_LENGTH;
+        res = realloc(res, res_size * sizeof(char));
+        SHA1(buf, r, hash);
+        nb_hash++;
+        for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
+            res[SHA_DIGEST_LENGTH * nb_hash + i] = hash[i];
     }
-    //total bytes read = length
-
     fclose(f);
-}*/
+
+    //total bytes read = length
+    dict->element.dict[0]->val->element.num = total_bytes_read;
+
+    pieces->element.str->length = (nb_hash + 1) * SHA_DIGEST_LENGTH;
+    void *ress = res;
+    char *resss = ress;
+    pieces->element.str->content = resss;
+}
 
 static void init_directory_torrent(struct be_node *root, char *path)
 {
@@ -215,6 +238,7 @@ static void init_directory_torrent(struct be_node *root, char *path)
     root->element.dict[3]->key->length = 6;
     root->element.dict[3]->key->content = strdup("pieces");
     root->element.dict[3]->val = be_alloc(BE_STR);
+    root->element.dict[3]->val->element.str = calloc(1, sizeof(struct be_string));
 
     //Getting the list of files paths to fill 'files' dictionnary
     char **files_path = NULL;
@@ -234,9 +258,9 @@ static void init_directory_torrent(struct be_node *root, char *path)
         root->element.dict[0]->val->element.list[i] = be_alloc(BE_DICT);
         init_basic_files_dict(root->element.dict[0]->val->element.list[i],
                               files_path[i], path);
-        //hash_multiple_files(files_path[i],
-          //                  root->element.dict[0]->val->element.list[i],
-            //                root->element.dict[3]->val);
+        hash_multiple_files(files_path[i],
+                            root->element.dict[0]->val->element.list[i],
+                            root->element.dict[3]->val, arr_size - i - 1);
     }
 
     char *dirname = my_basename(path); //ex : foo/bar/foobar_dir
