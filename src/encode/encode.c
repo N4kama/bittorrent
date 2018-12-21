@@ -57,18 +57,21 @@ static void init_basic_info(struct be_node *root)
     //Init the first 3 information of the torrent file
     root->element.dict[0]->key = calloc(1, sizeof(struct be_string));
     root->element.dict[0]->key->length = 7;
-    root->element.dict[0]->key->content = strdup("annonce");
+    root->element.dict[0]->key->content = strdup("announce");
     root->element.dict[0]->val = be_alloc(BE_STR);
-    root->element.dict[0]->val->element.str = calloc(1, sizeof(struct be_string));
+    root->element.dict[0]->val->element.str =
+        calloc(1, sizeof(struct be_string));
     root->element.dict[0]->val->element.str->length = 10;
     root->element.dict[0]->val->element.str->content = strdup("Naruto>DBZ");
     root->element.dict[1]->key = calloc(1, sizeof(struct be_string));
     root->element.dict[1]->key->length = 10;
     root->element.dict[1]->key->content = strdup("created by");
     root->element.dict[1]->val = be_alloc(BE_STR);
-    root->element.dict[1]->val->element.str = calloc(1, sizeof(struct be_string));
+    root->element.dict[1]->val->element.str = calloc(1,
+                                                     sizeof(struct be_string));
     root->element.dict[1]->val->element.str->length = 18;
-    root->element.dict[1]->val->element.str->content = strdup("Des BGs dla street");
+    root->element.dict[1]->val->element.str->content =
+        strdup("Des BGs dla street");
     root->element.dict[2]->key = calloc(1, sizeof(struct be_string));
     root->element.dict[2]->key->length = 13;
     root->element.dict[2]->key->content = strdup("creation date");
@@ -143,12 +146,14 @@ static void init_single_file_torrent(struct be_node *root, char *path)
     root->element.dict[1]->key->length = 4;
     root->element.dict[1]->key->content = strdup("name");
     root->element.dict[1]->val = be_alloc(BE_STR);
-    root->element.dict[1]->val->element.str = calloc(1, sizeof(struct be_string));
+    root->element.dict[1]->val->element.str = calloc(1,
+                                                     sizeof(struct be_string));
     root->element.dict[1]->val->element.str->length = strlen(basename);
     root->element.dict[1]->val->element.str->content = strdup(basename);
 }
 
-static void init_basic_files_dict(struct be_node *dict, char *path, char *origin_path)
+static void init_basic_files_dict(struct be_node *dict, char *path,
+                                  char *origin_path)
 {
     dict->element.dict = calloc(3, sizeof(struct be_dict *));
     dict->element.dict[0] = calloc(1, sizeof(struct be_dict));
@@ -182,12 +187,15 @@ static void init_basic_files_dict(struct be_node *dict, char *path, char *origin
             tmp++;
 
         idx_entries++;
-        list->element.list = realloc(list->element.list, (idx_entries + 2) * sizeof(struct be_node *));
+        list->element.list = realloc(list->element.list,
+                                (idx_entries + 2) * sizeof(struct be_node *));
         list->element.list[idx_entries + 1] = NULL;
         list->element.list[idx_entries] = be_alloc(BE_STR);
-        list->element.list[idx_entries]->element.str = calloc(1, sizeof(struct be_string));
+        list->element.list[idx_entries]->element.str =
+            calloc(1, sizeof(struct be_string));
         list->element.list[idx_entries]->element.str->length = tmp - idx;
-        list->element.list[idx_entries]->element.str->content = strndup(p_copy + idx, tmp - idx);
+        list->element.list[idx_entries]->element.str->content =
+            strndup(p_copy + idx, tmp - idx);
 
         if (p_copy[tmp])
             idx = tmp + 1;
@@ -259,7 +267,8 @@ static void init_directory_torrent(struct be_node *root, char *path)
     root->element.dict[3]->key->length = 6;
     root->element.dict[3]->key->content = strdup("pieces");
     root->element.dict[3]->val = be_alloc(BE_STR);
-    root->element.dict[3]->val->element.str = calloc(1, sizeof(struct be_string));
+    root->element.dict[3]->val->element.str = calloc(1,
+                                                     sizeof(struct be_string));
 
     //Getting the list of files paths to fill 'files' dictionnary
     char **files_path = NULL;
@@ -271,7 +280,8 @@ static void init_directory_torrent(struct be_node *root, char *path)
     root->element.dict[0]->key->length = 5;
     root->element.dict[0]->key->content = strdup("files");
     root->element.dict[0]->val = be_alloc(BE_LIST);
-    root->element.dict[0]->val->element.list = calloc(arr_size + 1, sizeof(struct be_node *));
+    root->element.dict[0]->val->element.list = calloc(arr_size + 1,
+                                                      sizeof(struct be_node *));
 
     //Filling the 'files' and 'pieces'
     for (int i = 0; i < arr_size; i++)
@@ -289,7 +299,8 @@ static void init_directory_torrent(struct be_node *root, char *path)
     root->element.dict[1]->key->length = 4;
     root->element.dict[1]->key->content = strdup("name");
     root->element.dict[1]->val = be_alloc(BE_STR);
-    root->element.dict[1]->val->element.str = calloc(1, sizeof(struct be_string));
+    root->element.dict[1]->val->element.str = calloc(1,
+                                                     sizeof(struct be_string));
     root->element.dict[1]->val->element.str->length = strlen(dirname);
     root->element.dict[1]->val->element.str->content = strdup(dirname);
 
