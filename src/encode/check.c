@@ -16,10 +16,12 @@ static void concat_path(char *dest, char *base, struct be_node *list)
 
 static int check_single_file(struct be_node *info)
 {
-    if (!info->element.dict[1] || strcmp("name", info->element.dict[1]->key->content))
+    if (!info->element.dict[1] || strcmp("name",
+                                         info->element.dict[1]->key->content))
         return 1;
 
-    if (!info->element.dict[3] || strcmp("pieces", info->element.dict[3]->key->content))
+    if (!info->element.dict[3] || strcmp("pieces",
+                                         info->element.dict[3]->key->content))
         return 1;
 
     int res = 1;
@@ -58,7 +60,8 @@ static int check_single_file(struct be_node *info)
     return res;
 }
 
-static char *hash_multiple_files(char *path, int file_length, int last_elem, int *len)
+static char *hash_multiple_files(char *path, int file_length, int last_elem,
+                                 int *len)
 {
     static char *res = NULL;
     static unsigned char buf[262144];
@@ -126,10 +129,12 @@ static char *hash_multiple_files(char *path, int file_length, int last_elem, int
 
 static int check_folder(struct be_node *info)
 {
-    if (!info->element.dict[1] || strcmp("name", info->element.dict[1]->key->content))
+    if (!info->element.dict[1] || strcmp("name",
+                                         info->element.dict[1]->key->content))
         return 1;
 
-    if (!info->element.dict[3] || strcmp("pieces", info->element.dict[3]->key->content))
+    if (!info->element.dict[3] || strcmp("pieces",
+                                         info->element.dict[3]->key->content))
         return 1;
 
     int res = 1;
@@ -142,7 +147,8 @@ static int check_folder(struct be_node *info)
     int file_length = 0;
     int files_count = 0;
     char path[4096];
-    struct be_node *file_node = info->element.dict[0]->val->element.list[files_count];
+    struct be_node *file_node =
+        info->element.dict[0]->val->element.list[files_count];
     while (file_node)
     {
         file_length = file_node->element.dict[0]->val->element.num;
@@ -151,7 +157,8 @@ static int check_folder(struct be_node *info)
         if (info->element.dict[0]->val->element.list[files_count + 1] == NULL)
             last = 0;
 
-        calculated_pieces = hash_multiple_files(path, file_length, last, &pieces_len);
+        calculated_pieces = hash_multiple_files(path, file_length, last,
+                                                &pieces_len);
         if (pieces_len == -1)
             return 1;
 
