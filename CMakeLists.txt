@@ -13,6 +13,7 @@ add_executable(
         src/main.c
         src/encode/decode.c
         src/encode/encode.c
+        src/encode/check.c
         src/connect/connect.c
     )
 
