@@ -1,5 +1,31 @@
-   __  ___         ___  _ __  __                        __ 
+   __  ___         ___  _ __  __                        __
   /  |/  /_ ______/ _ )(_) /_/ /____  ___________ ___  / /_
  / /|_/ / // /___/ _  / / __/ __/ _ \/ __/ __/ -_) _ \/ __/
-/_/  /_/\_, /   /____/_/\__/\__/\___/_/ /_/  \__/_//_/\__/ 
-       /___/                                              
+/_/  /_/\_, /   /____/_/\__/\__/\___/_/ /_/  \__/_//_/\__/
+       /___/
+
+
+Presentation :
+
+My bittorrent is a tool aiming at downloadings torrents from the internet.
+It can also create and show .torrent files with the right parameters
+
+Usage :
+
+   ./my-bittorent <options> <torrent file>
+
+Options :
+
+   -p : decodes a .torrent file
+
+   -m : creates a .torrent file from single file or folder
+
+   -c : checks the integrity of the downloaded files from a .torrent file
+
+   -d : dunps the peers
+
+How to compile :
+
+   mkdir build && cd build
+   cmake ..
+   make (or make my-bittorrent)
