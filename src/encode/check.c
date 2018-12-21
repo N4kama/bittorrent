@@ -67,6 +67,14 @@ static char *hash_multiple_files(char *path, int file_length, int last_elem, int
     static int res_size = 0;
     int nb_hash = -1;
 
+    struct stat st;
+    stat(path, &st);
+    if (st.st_size != file_length)
+    {
+        *len = -1;
+        return NULL;
+    }
+
     FILE *f = fopen(path, "r");
     if (!f)
     {
