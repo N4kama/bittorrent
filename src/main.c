@@ -120,6 +120,5 @@ int main(int argc, char *argv[])
 {
     struct options options = get_options(argc, argv);
     int res = exec_option(options);
-    printf("%d\n", res);
     return 0;
 }
