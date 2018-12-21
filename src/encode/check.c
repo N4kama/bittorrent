@@ -1,5 +1,19 @@
 #include "encode.h"
 
+static void concat_path(char *dest, char *base, struct be_node *list)
+{
+    strcpy(dest, base);
+
+    int len = 0;
+    while (list->element.list[len])
+    {
+        char *str = list->element.list[len]->element.str->content;
+        strcat(dest, "/");
+        strcat(dest, str);
+        len++;
+    }
+}
+
 static int check_single_file(struct be_node *info)
 {
     if (!info->element.dict[1] || strcmp("name", info->element.dict[1]->key->content))
@@ -44,6 +58,104 @@ static int check_single_file(struct be_node *info)
     return res;
 }
 
+static char *hash_multiple_files(char *path, int file_length, int last_elem, int *len)
+{
+    static char *res = NULL;
+    static unsigned char buf[262144];
+    static int idx = 0;
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    static int res_size = 0;
+    int nb_hash = -1;
+
+    FILE *f = fopen(path, "r");
+    if (!f)
+    {
+        *len = -1;
+        return NULL;
+    }
+    int r = 0;
+    int overflow = 0;
+    int bytes_to_read = file_length;
+    if (idx + bytes_to_read > 262144)
+    {
+        overflow = 1;
+        bytes_to_read = 262144 - idx;
+    }
+    while ((r = fread(buf + idx, sizeof(char), bytes_to_read, f)) > 0)
+    {
+        idx += r;
+        if (last_elem && idx != 262144)
+            break;
+        if (!last_elem)
+            buf[idx] = '\0';
+        if (overflow)
+        {
+            file_length -= bytes_to_read;
+            if (file_length <= 262144)
+            {
+                overflow = 0;
+                bytes_to_read = file_length;
+            }
+            else
+                bytes_to_read = 262144;
+        }
+        idx = 0;
+        res_size += SHA_DIGEST_LENGTH;
+        res = realloc(res, res_size * sizeof(char));
+        SHA1(buf, r, hash);
+        nb_hash++;
+        for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
+            res[SHA_DIGEST_LENGTH * nb_hash + i] = hash[i];
+    }
+    fclose(f);
+
+    *len = res_size;
+
+    void *tmp = res;
+    char *ress = tmp;
+    return ress;
+}
+
+static int check_folder(struct be_node *info)
+{
+    if (!info->element.dict[1] || strcmp("name", info->element.dict[1]->key->content))
+        return 1;
+
+    if (!info->element.dict[3] || strcmp("pieces", info->element.dict[3]->key->content))
+        return 1;
+
+    int res = 1;
+    char *basename = info->element.dict[1]->val->element.str->content;
+    char *pieces = info->element.dict[3]->val->element.str->content;
+    char *calculated_pieces = NULL;
+    int pieces_len = 0;
+
+    int last = 1;
+    int file_length = 0;
+    int files_count = 0;
+    char path[4096];
+    struct be_node *file_node = info->element.dict[0]->val->element.list[files_count];
+    while (file_node)
+    {
+        file_length = file_node->element.dict[0]->val->element.num;
+        concat_path(path, basename, file_node->element.dict[1]->val);
+
+        if (info->element.dict[0]->val->element.list[files_count + 1] == NULL)
+            last = 0;
+
+        calculated_pieces = hash_multiple_files(path, file_length, last, &pieces_len);
+        if (pieces_len == -1)
+            return 1;
+
+        file_node = info->element.dict[0]->val->element.list[++files_count];
+    }
+
+    if (!memcmp(calculated_pieces, pieces, pieces_len * sizeof(char)))
+        res = 0;
+    free(calculated_pieces);
+    return res;
+}
+
 static int check_be_node(struct be_node *info)
 {
     if (!info->element.dict[0])
@@ -51,7 +163,7 @@ static int check_be_node(struct be_node *info)
     if (!strcmp("length", info->element.dict[0]->key->content))
         return check_single_file(info);
     if (!strcmp("files", info->element.dict[0]->key->content))
-        return 1; //check_folder(info);
+        return check_folder(info);
     return 1;
 }
 
