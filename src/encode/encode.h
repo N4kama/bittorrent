@@ -28,5 +28,6 @@ struct metainfo
 };
 
 int encode_torrent(char *path);
+int check_integrity(char *path);
 
 #endif /* !ENCODE_H */
