@@ -129,10 +129,10 @@ json_t *decode_torrent(char *file_path)
     {
         //Error while trying to read file
         free(file);
-        close(f);
+        fclose(f);
         return NULL;
     }
-    close(f);
+    fclose(f);
 
     //Decode the buffer and parses it into a be_node tree
     struct be_node *tree = be_decode(file, st.st_size);

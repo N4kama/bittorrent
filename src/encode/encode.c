@@ -49,6 +49,7 @@ static void get_files_from_dir(char *path, char ***files_path, int *arr_size)
             }
         }
     }
+    closedir(dir);
 }
 
 static void init_basic_info(struct be_node *root)
@@ -100,6 +101,15 @@ static int hash_single_file(char *path, struct be_node *pieces)
             res[SHA_DIGEST_LENGTH * nb_hash + i] = hash[i];
     }
     fclose(f);
+    if (!r)
+    {
+        res_size += SHA_DIGEST_LENGTH;
+        res = realloc(res, res_size * sizeof(char));
+        SHA1(buf, r, hash);
+        nb_hash++;
+        for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
+            res[SHA_DIGEST_LENGTH * nb_hash + i] = hash[i];
+    }
 
     pieces->element.str = calloc(1, sizeof(struct be_string));
     pieces->element.str->length = (nb_hash + 1) * SHA_DIGEST_LENGTH;
@@ -221,6 +231,17 @@ static void hash_multiple_files(char *path, struct be_node *dict,
             res[SHA_DIGEST_LENGTH * nb_hash + i] = hash[i];
     }
     fclose(f);
+    if (!r && !last_elem)
+    {
+        buf[idx] = '\0';
+        idx = 0;
+        res_size += SHA_DIGEST_LENGTH;
+        res = realloc(res, res_size * sizeof(char));
+        SHA1(buf, r, hash);
+        nb_hash++;
+        for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
+            res[SHA_DIGEST_LENGTH * nb_hash + i] = hash[i];
+    }
 
     //total bytes read = length
     dict->element.dict[0]->val->element.num = total_bytes_read;
@@ -271,6 +292,11 @@ static void init_directory_torrent(struct be_node *root, char *path)
     root->element.dict[1]->val->element.str = calloc(1, sizeof(struct be_string));
     root->element.dict[1]->val->element.str->length = strlen(dirname);
     root->element.dict[1]->val->element.str->content = strdup(dirname);
+
+    //free files_path
+    for (int i = 0; i < arr_size; i++)
+        free(files_path[i]);
+    free(files_path);
 }
 
 static void init_torrent_info(char *path, struct be_node *root)
