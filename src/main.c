@@ -95,7 +95,10 @@ int exec_option(struct options opt)
     case 'm':
         return encode_torrent(opt.argv);
     case 'c':
+<<<<<<< HEAD
         return check_integrity(opt.argv);
+=======
+>>>>>>> [GENERAL] hanling of dump peers in main
         break;
     default:
         break;
@@ -110,7 +113,7 @@ int exec_option(struct options opt)
             return 1;
         }
         const char *s = json_string_value(temp_info);
-        res = dump_peers(s);
+        res = dump_peers(s, opt.argv);
         free_json(root);
         return res;
     }
