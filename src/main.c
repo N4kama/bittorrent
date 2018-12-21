@@ -95,10 +95,7 @@ int exec_option(struct options opt)
     case 'm':
         return encode_torrent(opt.argv);
     case 'c':
-<<<<<<< HEAD
         return check_integrity(opt.argv);
-=======
->>>>>>> [GENERAL] hanling of dump peers in main
         break;
     default:
         break;
