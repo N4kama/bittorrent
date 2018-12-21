@@ -53,6 +53,7 @@ static json_t *create_json(json_t *root, struct be_node *tree)
         json_decref(root);
         return json_integer(tree->element.num);
     case BE_LIST:
+        json_decref(root);
         cur = tree->element.list[i++];
         array = json_array();
         while (cur)
@@ -98,7 +99,7 @@ void free_json(json_t *root)
 
 int pretty_print(json_t *root)
 {
-    if(!root)
+    if (!root)
     {
         return 1;
     }
@@ -119,15 +120,24 @@ json_t *decode_torrent(char *file_path)
 
     //Open the file and fill the buffer
     FILE *f = fopen(file_path, "r");
+    if(!f)
+    {
+        free(file);
+        return NULL;
+    }
     if (fread(file, sizeof(char), st.st_size, f) <= 0)
     {
         //Error while trying to read file
+        free(file);
+        close(f);
+        return NULL;
     }
+    close(f);
 
     //Decode the buffer and parses it into a be_node tree
     struct be_node *tree = be_decode(file, st.st_size);
     free(file);
-    if(!tree)
+    if (!tree)
     {
         return NULL;
     }
