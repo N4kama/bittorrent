@@ -112,6 +112,8 @@ int pretty_print(json_t *root)
 json_t *decode_torrent(char *file_path)
 {
     //get the size of the file in order to create the right fitted buffer
+    if (!file_path)
+        return NULL;
     struct stat st;
     stat(file_path, &st);
     char *file = calloc(st.st_size, sizeof(char));
