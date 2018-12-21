@@ -62,7 +62,7 @@ static void init_basic_info(struct be_node *root)
     root->element.dict[0]->val->element.str =
         calloc(1, sizeof(struct be_string));
     root->element.dict[0]->val->element.str->length = 10;
-    root->element.dict[0]->val->element.str->content = strdup("Naruto>DBZ");
+    root->element.dict[0]->val->element.str->content = strdup("Naruto<DBZ");
     root->element.dict[1]->key = calloc(1, sizeof(struct be_string));
     root->element.dict[1]->key->length = 10;
     root->element.dict[1]->key->content = strdup("created by");
