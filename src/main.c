@@ -1,6 +1,7 @@
 #include "includes.h"
 
-static struct options parse_options(struct options opt, int *argv_index, char **argv, char c)
+static struct options parse_options(struct options opt, int *argv_index,
+                                    char **argv, char c)
 {
     switch (c)
     {
@@ -46,7 +47,8 @@ struct options fill_options(int argc, char **argv, struct option *options)
     int argv_index = 1;
     int option_index = 0;
     char c = ' ';
-    while ((c = getopt_long(argc, argv, "p:m:c:vd", options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "p:m:c:vd",
+                            options, &option_index)) != -1)
     {
         if (opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E')
         {
@@ -56,7 +58,8 @@ struct options fill_options(int argc, char **argv, struct option *options)
         opt = parse_options(opt, &argv_index, argv, c);
         argv_index++;
     }
-    if (!opt.nb_argv || opt.v > 1 || opt.d > 1 || c == '?' || opt.type == 'E' || argv_index < argc)
+    if (!opt.nb_argv || opt.v > 1 || opt.d > 1 || c == '?'
+        || opt.type == 'E' || argv_index < argc)
     {
         errx(1, "Usage: ./my-bittorrent [options] [files]");
     }
