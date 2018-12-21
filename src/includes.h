@@ -7,6 +7,7 @@
 # include "struct.h"
 # include "encode/decode.h"
 # include "encode/encode.h"
+# include "connect/connect.h"
 
 struct options
 {
