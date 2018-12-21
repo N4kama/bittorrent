@@ -76,27 +76,20 @@ int dump_peers(const char *path, const char *f_path)
     unsigned char *val_u = val_v;
     char *n_path = calloc(4096, 1);
     unsigned char *info_hash_u = calloc(4096, 1);
-    info_hash_u = SHA1(val_u, strlen(val), info_hash_u); //"%f0%7e%0b%05%84%74%5b%7b%cb%35%e9%80%97%48%8d%34%e6%86%23%d0"; //sha1(bencode(metadata['info']))";
+    info_hash_u = SHA1(val_u, strlen(val), info_hash_u);
+    free(val);
     void *info_hash_v = info_hash_u;
     char *info_hash = info_hash_v;
-    info_hash = info_hash;
-    FILE *buf = fopen("test", "w+");
     CURL *curl;
     curl = curl_easy_init();
     if (curl)
     {
-        sprintf(n_path, "/announce?info_hash=%s&peer_id=-MB2021-&port=6881&uploaded=0&downloaded=100&left=0&compact=1", curl_easy_escape(curl, info_hash, strlen(info_hash)));
-        curl_easy_setopt(curl, CURLOPT_URL, path);
-        printf("%s\n", n_path);
-        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-        curl_easy_setopt(curl, CURLOPT_REQUEST_TARGET, n_path);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, buf);
+        sprintf(n_path, "%s?info_hash=%s&peer_id=-MB2021-&port=6881&uploaded=0&downloaded=100&left=0&compact=1", path, curl_easy_escape(curl, info_hash, 20));
+        curl_easy_setopt(curl, CURLOPT_URL, n_path);
         curl_easy_perform(curl);
-        fclose(buf);
-        /* always cleanup */
         curl_easy_cleanup(curl);
     }
     free(n_path);
+    free(info_hash_u);
     return 1;
 }
